@@ -16,17 +16,18 @@ This Ansible playbook is designed to deploy a Flask application behind an HAProx
 ## Usage:
 1. Update the `hosts` file with the IP addresses or hostnames of your web servers and HAProxy server.
 2. Run the Ansible playbook using the following command:
-    ```ansible-playbook -i hosts site.yaml
+    ```
+    ansible-playbook -i hosts site.yaml
 ## Description:
 ### Tasks
 Updates package lists on all managed hosts.
--Installs HAproxy on a dedicated server for load balancing.
--Gathers IP addresses of web servers for HAproxy configuration.
--Configures HAproxy using a Jinja2 template for dynamic configuration management.
--Installs Python dependencies (pip, Flask, Gunicorn) on web servers for application execution.
--Creates a directory for the Flask application on web servers.
--Deploys the Flask application code (application2.py) to web servers.
--Runs the Flask application as a daemon using Gunicorn for efficient resource utilization.
+- Installs HAproxy on a dedicated server for load balancing.
+- Gathers IP addresses of web servers for HAproxy configuration.
+- Configures HAproxy using a Jinja2 template for dynamic configuration management.
+- Installs Python dependencies (pip, Flask, Gunicorn) on web servers for application execution.
+- Creates a directory for the Flask application on web servers.
+- Deploys the Flask application code (application2.py) to web servers.
+- Runs the Flask application as a daemon using Gunicorn for efficient resource utilization.
 
 ## Notes:
 - Customize the HAProxy configuration template (`haproxy.cfg.j2`) according to your requirements.
