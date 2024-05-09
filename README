@@ -22,22 +22,16 @@ ansible-playbook -i hosts site.yaml
 ```
 
 **Description:**
-- The playbook is divided into two main sections:
-  - Deployment of Flask Application on Web Servers (`webservers` group)
-  - Configuration of HAProxy Load Balancer (`HAproxy` group)
+Tasks:
 
-- The Flask application deployment tasks include:
-  - Updating the package cache using `apt`.
-  - Installing Python 3, pip3, and virtual environment packages.
-  - Installing Flask and Gunicorn.
-  - Copying the Flask application file (`application2.py`) to the remote server.
-  - Running the Flask application using Gunicorn.
-
-- The HAProxy configuration tasks include:
-  - Updating the package cache using `apt`.
-  - Installing the latest version of HAProxy.
-  - Configuring HAProxy by copying the template file (`haproxy.cfg.j2`) to the destination directory.
-  - Restarting the HAProxy service to apply the changes.
+Updates package lists on all managed hosts.
+Installs HAproxy on a dedicated server for load balancing.
+Gathers IP addresses of web servers for HAproxy configuration.
+Configures HAproxy using a Jinja2 template for dynamic configuration management.
+Installs Python dependencies (pip, Flask, Gunicorn) on web servers for application execution.
+Creates a directory for the Flask application on web servers.
+Deploys the Flask application code (application2.py) to web servers.
+Runs the Flask application as a daemon using Gunicorn for efficient resource utilization.
 
 **Notes:**
 - Customize the HAProxy configuration template (`haproxy.cfg.j2`) according to your requirements.
@@ -47,3 +41,4 @@ ansible-playbook -i hosts site.yaml
 **References:**
 - Flask Documentation: [https://flask.palletsprojects.com/](https://flask.palletsprojects.com/)
 - HAProxy Documentation: [https://www.haproxy.com/documentation/](https://www.haproxy.com/documentation/)
+
