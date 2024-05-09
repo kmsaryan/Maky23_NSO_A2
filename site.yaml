@@ -1,80 +1,75 @@
+---
+
 - hosts: all
-  gather_facts: true
+  gather_facts: yes
+  become: yes
   tasks:
-    - name: Update apt cache and install required packages
+    - name: apt update
       apt:
         update_cache: true
-        name:
-          - haproxy
-          - python3
-          - python3-pip
-          - python3-venv
-          - gunicorn
-        state: latest
-      become: true
 
-    - name: Install Flask
-      pip:
-        name: flask
-        state: latest
-        executable: pip3
-      become: true
-
-    - name: Copy Flask app to remote server
-      copy:
-        src: application2.py
-        dest: /home/ubuntu/application2.py
-        owner: ubuntu
-        mode: "0755"
-      become: true
-
-    - name: Running Flask application
-      shell: gunicorn -w 2 -D -b 0.0.0.0:8080 application2:app
-      become: true
-      async: 30
-      poll: 0
-
-- hosts: HAproxy
-  become: true
+- name: Configuring HAproxy loadbalancer
+  hosts: HAproxy
+  become: yes
   tasks:
-    - name: Copy SSH config file to HAProxy server
-      copy:
-        src: config
-        dest: /home/ubuntu/.ssh/config
-        owner: ubuntu
-        group: ubuntu
-        mode: "0644"
-      become: true
 
-    - name: Ensure HAProxy has correct permissions for SSH config
-      file:
-        path: /home/ubuntu/.ssh/config
-        owner: ubuntu
-        group: ubuntu
-        mode: "0644"
-      become: true
-    - name: Get IP addresses of webservers
-      set_fact:
-        webservers_ips: "{{ groups['webservers'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | list }}"
-      run_once: true
+    - name: Installing HAproxy
+      apt:
+        name: haproxy
+        state: present
+        update_cache: true
+      
 
-    - name: Configure HAproxy
+    - name: gather server ip addresses
+      setup:
+            filter: ansible_default_ipv4.address     
+         
+    
+    - name: copy files haproxy.cfg
       template:
         src: haproxy.cfg.j2
-        dest: /etc/haproxy/haproxy.cfg
-      become: true
-      vars:
-        webservers_ips: "{{ webservers_ips }}"
+        dest: "/etc/haproxy/haproxy.cfg"
+      notify:
+        - restart haproxy
 
-    - name: Restart HAproxy and ensure it's running
+  handlers:
+
+    - name: restart haproxy
       service:
-        name: haproxy
-        state: restarted
-      become: true
-      ignore_errors: true
+       name: haproxy
+       state: restarted
 
-    - name: Wait for HAproxy to start
-      wait_for:
-        port: 80
-        delay: 10
-        timeout: 60
+- hosts: webservers
+  become: yes
+  tasks:
+    - name: install pip
+      apt:
+        name: python3-pip
+        state: present
+    
+    - name: install flask
+      pip:
+        executable: pip3
+        name: flask
+        state: latest
+    - name: install gunicorn
+      pip:
+        executable: pip3
+        name: gunicorn
+        state: latest
+
+    - name: createnew directory
+      file:
+              path: "/home/flask-app/"
+              state: directory
+    - name: copy app.py to webservers
+      template:
+        src: "application2.py"
+        dest: "/home/flask-app/app.py"
+
+
+    - name: start flask app
+      shell: |
+        cd /home/flask-app/
+        gunicorn --bind 0.0.0.0:80 app:app&  
+
