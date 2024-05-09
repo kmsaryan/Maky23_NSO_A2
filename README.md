@@ -17,7 +17,6 @@ This Ansible playbook is designed to deploy a Flask application behind an HAProx
 1. Update the `hosts` file with the IP addresses or hostnames of your web servers and HAProxy server.
 2. Run the Ansible playbook using the following command:
     ```ansible-playbook -i hosts site.yaml
-```
 ## Description:
 ### Tasks
 Updates package lists on all managed hosts.
