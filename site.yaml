@@ -107,4 +107,47 @@
       notify:
         - restart snmpd
 
+- hosts: HAproxy
+  become: true
+  tasks:
+    - name: Copy uipassword template to target
+      template:
+        src: uipassword_template.j2
+        dest: uipassword
+
+    - name: Read 'uipassword' file
+      shell: cat uipassword
+      register: password_file_content
+
+    - name: Set username and password from 'uipassword' file
+      set_fact:
+        haproxy_username: "{{ password_file_content.stdout_lines[0].split(':')[0] }}"
+        haproxy_password: "{{ password_file_content.stdout_lines[0].split(':')[1] }}"
+
+    - name: Check if password has changed
+      set_fact:
+        password_changed: "{{ haproxy_password != current_password }}"
+      vars:
+        current_password: "{{ lookup('file', 'uipassword', errors='ignore') }}"
+      changed_when: false
+
+    - name: Edit HAproxy configuration
+      blockinfile:
+        path: /etc/haproxy/haproxy.cfg
+        block: |
+          listen stats
+            bind :8011
+            mode http
+            stats enable
+            stats uri /stats
+            stats refresh 1s
+            stats auth {{ haproxy_username }}:{{ haproxy_password }}
+      when: password_changed or not current_password
+
+    - name: Restart HAproxy
+      service:
+        name: haproxy
+        state: restarted
+      become: true
+      when: password_changed or not current_password
 

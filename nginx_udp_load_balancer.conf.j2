@@ -6,8 +6,41 @@ stream {
         server {{ hostvars[host]['ansible_default_ipv4']['address'] }}:161; # IP and port for each server in the 'webservers' group
         {% endfor %}
     }
+
     server {
         listen 1611 udp; # Public facing UDP port
         proxy_pass snmp_servers; # Forward to the defined backend servers
     }
+}
+
+# HTTP server configuration
+http {
+    # Default server configuration
+    server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        server_name _; # This is a catch-all server block
+
+        root /var/www/html; # Document root
+        index index.html index.htm; # Default index files
+
+        location / {
+            try_files $uri $uri/ =404; # Serve files if they exist or return 404
+        }
+
+        # Additional configuration for handling PHP, proxying, etc., can be added here
+    }
+
+    # Example virtual host configuration
+    # server {
+    #     listen 80;
+    #     server_name example.com;
+    #
+    #     root /var/www/example.com;
+    #     index index.html;
+    #
+    #     location / {
+    #         try_files $uri $uri/ =404;
+    #     }
+    # }
 }

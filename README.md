@@ -30,8 +30,8 @@ Updates package lists on all managed hosts.
 - Creates a directory for the Flask application on web servers.
 - Deploys the Flask application code (application2.py) to web servers.
 - Runs the Flask application as a daemon using Gunicorn for efficient resource utilization. 
-- installs  SNMPd daemon installation on the webservers group in hosts file
-- installs and configure Nginx for UDP load balancing,
+- Installs and configures SNMPd daemon on the webservers group in hosts file
+- Installs and configures Nginx for UDP load balancing,
 
 ## Notes:
 - Customize the HAProxy configuration template (`haproxy.cfg.j2`) according to your requirements.
