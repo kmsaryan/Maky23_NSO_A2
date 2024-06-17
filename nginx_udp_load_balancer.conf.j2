@@ -1,0 +1,13 @@
+# Load balancing configuration for SNMP using Nginx
+stream {
+    upstream snmp_servers {
+        # Dynamically define backend servers for SNMP from the 'webservers' group
+        {% for host in groups['webservers'] %}
+        server {{ hostvars[host]['ansible_default_ipv4']['address'] }}:161; # IP and port for each server in the 'webservers' group
+        {% endfor %}
+    }
+    server {
+        listen 1611 udp; # Public facing UDP port
+        proxy_pass snmp_servers; # Forward to the defined backend servers
+    }
+}

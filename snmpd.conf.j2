@@ -1,0 +1,9 @@
+# SNMP daemon configuration
+agentAddress udp:161,udp:1611
+# Ensure SNMP listens on all interfaces, adjust if necessary
+
+# Example configuration directives
+rocommunity public  default    -V systemonly
+rocommunity6 public  default   -V systemonly
+
+# Replace 'public' with a more secure community string in production

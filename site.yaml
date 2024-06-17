@@ -1,8 +1,8 @@
 ---
 
 - hosts: all
-  gather_facts: yes
-  become: yes
+  gather_facts: true
+  become: true
   tasks:
     - name: apt update
       apt:
@@ -10,7 +10,7 @@
 
 - name: Configuring HAproxy loadbalancer
   hosts: HAproxy
-  become: yes
+  become: true
   tasks:
 
     - name: Installing HAproxy
@@ -31,6 +31,17 @@
         dest: "/etc/haproxy/haproxy.cfg"
       notify:
         - restart haproxy
+    - name: install nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: true
+    - name: Copy Nginx configuration for UDP load balancing
+      template:
+        src: nginx_udp_load_balancer.conf.j2
+        dest: /etc/nginx/conf.d/udp_load_balancer.conf
+      notify:
+        - restart nginx
 
   handlers:
 
@@ -39,8 +50,19 @@
        name: haproxy
        state: restarted
 
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+    
+    - name: restart snmpd
+      service:
+        name: snmpd
+        state: restarted
+
+
 - hosts: webservers
-  become: yes
+  become: true
   tasks:
     - name: install pip
       apt:
@@ -72,4 +94,17 @@
       shell: |
         cd /home/flask-app/
         gunicorn --bind 0.0.0.0:80 app:app&  
+    
+    - name: snmpd
+      apt:
+        name: snmpd
+        state: present
+        update_cache: true
+    - name: copy snmpd.conf
+      template:
+        src: snmpd.conf.j2
+        dest: "/etc/snmp/snmpd.conf"
+      notify:
+        - restart snmpd
+
 
